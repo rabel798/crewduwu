@@ -1,0 +1,32 @@
+TemplateDoesNotExist at /projects/dashboard/projects/1/manage/
+dashboard/manage_project.html
+Request Method:	GET
+Request URL:	http://475b258a-9aad-42e8-a387-18b9ff2fe7cb-00-1yg33yxlvc92g.sisko.replit.dev/projects/dashboard/projects/1/manage/
+Django Version:	5.2
+Exception Type:	TemplateDoesNotExist
+Exception Value:	
+dashboard/manage_project.html
+Exception Location:	/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/template/loader.py, line 47, in select_template
+Raised during:	projects.dashboard_views.ManageProjectView
+Python Executable:	/home/runner/workspace/.pythonlibs/bin/python
+Python Version:	3.11.10
+Python Path:	
+['/home/runner/workspace/crewd',
+ '/home/runner/workspace/crewd',
+ '/nix/store/lc7qv2ldzrs1aq3hbyzmbgvn0h2w26pl-sitecustomize/lib/python/site-packages',
+ '/nix/store/dfg63lldbvcj207iyr9z0xw21d8ax02n-python3.11-pip-24.0/lib/python3.11/site-packages',
+ '/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python311.zip',
+ '/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python3.11',
+ '/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python3.11/lib-dynload',
+ '/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages',
+ '/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages',
+ '/nix/store/wblvmd5y7izx0z10d1w7ga7zc4apjxmb-python3.11-setuptools-75.1.1/lib/python3.11/site-packages']
+Server time:	Wed, 09 Apr 2025 04:59:39 +0000
+Template-loader postmortem
+Django tried loading these templates, in this order:
+
+Using engine django:
+
+django.template.loaders.filesystem.Loader: /home/runner/workspace/crewd/templates/dashboard/manage_project.html (Source does not exist)
+django.template.loaders.app_directories.Loader: /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/contrib/admin/templates/dashboard/manage_project.html (Source does not exist)
+django.template.loaders.app_directories.Loader: /home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/contrib/auth/templates/dashboard/manage_project.html (Source does not exist)
