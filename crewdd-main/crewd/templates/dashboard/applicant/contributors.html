@@ -1,0 +1,123 @@
+{% extends 'dashboard/base.html' %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Contributors & Projects</h1>
+    
+    <!-- Search and Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="searchQuery" class="form-label">Search Contributors</label>
+                    <input type="text" class="form-control" id="searchQuery" name="q" value="{{ request.GET.q }}" placeholder="Search by name or skills">
+                </div>
+                <div class="col-md-3">
+                    <label for="techFilter" class="form-label">Tech Stack</label>
+                    <select class="form-select" id="techFilter" name="tech">
+                        <option value="">All Technologies</option>
+                        {% for tech in all_tech_options %}
+                            <option value="{{ tech }}" {% if request.GET.tech == tech %}selected{% endif %}>{{ tech }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="roleFilter" class="form-label">Role</label>
+                    <select class="form-select" id="roleFilter" name="role">
+                        <option value="">All Roles</option>
+                        <option value="applicant" {% if request.GET.role == 'applicant' %}selected{% endif %}>Applicant</option>
+                        <option value="leader" {% if request.GET.role == 'leader' %}selected{% endif %}>Team Leader</option>
+                        <option value="company" {% if request.GET.role == 'company' %}selected{% endif %}>Company</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if active_subtab == 'contributors' %}active{% endif %}" href="{% url 'projects:contributors_list' %}">Contributors</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_subtab == 'projects' %}active{% endif %}" href="{% url 'projects:projects_list' %}">Projects</a>
+        </li>
+    </ul>
+    
+    {% if active_subtab == 'contributors' %}
+        <!-- Contributors Section -->
+        <div class="row">
+            {% for user in contributors %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="user-card">
+                        <div class="user-avatar">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                            {% else %}
+                                <div class="d-flex align-items-center justify-content-center h-100" style="background-color: #4B4ACF; color: white; font-size: 1.5rem;">
+                                    {{ user.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="user-info">
+                            <h5 class="user-name">{{ user.username }}</h5>
+                            <div class="user-role">{{ user.get_role_display }}</div>
+                            <div class="user-skills">
+                                {% for tech in user.get_tech_stack_list|slice:":3" %}
+                                    <span class="skill-tag">{{ tech }}</span>
+                                {% endfor %}
+                                {% if user.get_tech_stack_list|length > 3 %}
+                                    <span class="skill-tag">+{{ user.get_tech_stack_list|length|add:"-3" }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="ms-auto">
+                            <a href="{% url 'projects:view_profile' user.id %}" class="btn btn-sm btn-outline-primary">View Profile</a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> No contributors found matching your filters.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if contributors.paginator.num_pages > 1 %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if contributors.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tech %}&tech={{ request.GET.tech }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ contributors.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tech %}&tech={{ request.GET.tech }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Page {{ contributors.number }} of {{ contributors.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if contributors.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ contributors.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tech %}&tech={{ request.GET.tech }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ contributors.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tech %}&tech={{ request.GET.tech }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
