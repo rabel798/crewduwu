@@ -1,0 +1,281 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Explore Projects{% endblock %}
+
+{% block dashboard_content %}
+<div class="projects-container">
+    <!-- Header Section -->
+    <div class="section-header mb-4">
+        <h4 class="mb-0">Explore Projects</h4>
+        <p class="text-muted mb-0">Discover exciting projects and opportunities to collaborate</p>
+    </div>
+
+    <!-- Search & Filter Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="filter-form">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-search me-2"></i>Search Projects
+                            </label>
+                            <input type="text" name="search" class="form-control" 
+                                   placeholder="Search by title or description..." 
+                                   value="{{ request.GET.search }}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-code me-2"></i>Tech Stack
+                            </label>
+                            <select name="tech" class="form-select">
+                                <option value="">All Technologies</option>
+                                {% for tech in tech_choices %}
+                                    <option value="{{ tech }}" {% if request.GET.tech == tech %}selected{% endif %}>
+                                        {{ tech }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-sort me-2"></i>Sort By
+                            </label>
+                            <select name="sort" class="form-select">
+                                <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Newest First</option>
+                                <option value="oldest" {% if request.GET.sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+                                <option value="team_size" {% if request.GET.sort == 'team_size' %}selected{% endif %}>Team Size</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-2"></i>Apply
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Projects Grid -->
+    {% if projects %}
+    <div class="row g-4">
+        {% for project in projects %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 project-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">{{ project.title }}</h5>
+                        <span class="status-badge status-{{ project.status }}">
+                            {{ project.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    <p class="card-text text-muted mb-3">{{ project.description|truncatechars:150 }}</p>
+                    
+                    <div class="project-meta mb-3">
+                        <div class="meta-item">
+                            <i class="fas fa-users text-accent"></i>
+                            <span>{{ project.members.count }}/{{ project.team_size }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-clock text-accent"></i>
+                            <span>{{ project.duration }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar text-accent"></i>
+                            <span>{{ project.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="skills-container mb-3">
+                        {% for skill in project.get_required_skills_list|slice:":5" %}
+                            <span class="skill-tag">{{ skill }}</span>
+                        {% endfor %}
+                        {% with remaining=project.get_required_skills_list|length|add:"-5" %}
+                            {% if remaining > 0 %}
+                                <span class="skill-tag more">+{{ remaining }}</span>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                        <div class="d-flex align-items-center">
+                            <div class="creator-avatar me-2">
+                                {% if project.team_leader.profile_picture %}
+                                    <img src="{{ project.team_leader.profile_picture.url }}" alt="{{ project.team_leader.username }}">
+                                {% else %}
+                                    <div class="avatar-placeholder">{{ project.team_leader.username.0|upper }}</div>
+                                {% endif %}
+                            </div>
+                            <span class="creator-name">{{ project.team_leader.username }}</span>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-info-circle me-1"></i>Details
+                            </a>
+                            {% if project.id not in applied_project_ids %}
+                            <a href="{% url 'projects:apply_project' project.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i>Apply
+                            </a>
+                            {% else %}
+                            <button class="btn btn-sm btn-success" disabled>
+                                <i class="fas fa-check me-1"></i>Applied
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+            <h5>No Projects Found</h5>
+            <p class="text-muted">Try adjusting your search filters or check back later for new projects.</p>
+            <a href="{% url 'projects:projects_list' %}" class="btn btn-primary">
+                Clear Filters
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.projects-container {
+    padding: 1.5rem;
+}
+
+.project-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+}
+
+.status-active { 
+    background: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+}
+
+.status-completed { 
+    background: rgba(33, 150, 243, 0.1);
+    color: #2196F3;
+}
+
+.status-cancelled { 
+    background: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+}
+
+.project-meta {
+    display: flex;
+    gap: 1rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.meta-item i {
+    font-size: 1rem;
+}
+
+.skills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-tag {
+    background: rgba(79, 251, 223, 0.1);
+    color: var(--accent-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+}
+
+.skill-tag.more {
+    background: var(--border-color);
+    color: var(--text-secondary);
+}
+
+.creator-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dark-bg);
+    font-weight: 600;
+}
+
+.creator-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.creator-name {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.form-control, .form-select {
+    background: var(--dark-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.form-control:focus, .form-select:focus {
+    background: var(--dark-bg);
+    border-color: var(--accent-color);
+    color: var(--text-primary);
+}
+
+.form-label {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.text-accent {
+    color: var(--accent-color);
+}
+</style>
+{% endblock %} 
