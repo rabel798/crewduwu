@@ -1,0 +1,446 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Projects - Crewd{% endblock %}
+
+{% block dashboard_content %}
+<style>
+.projects-container {
+    padding: 3rem 0;
+    background: var(--dark-bg);
+}
+
+.projects-header {
+    text-align: center;
+    padding: 4rem 2rem;
+    margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.projects-title {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, var(--accent-color), #3de0c6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fadeSlideDown 0.8s ease-out;
+}
+
+.projects-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    max-width: 800px;
+    margin: 0 auto;
+    animation: fadeSlideUp 0.8s ease-out 0.2s both;
+}
+
+.filter-bar {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2.5rem;
+    margin-bottom: 3rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.8s ease-out 0.4s both;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.filter-bar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    font-weight: 500;
+    color: var(--accent-color);
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+    transition: color 0.3s;
+}
+
+.filter-control {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    background: var(--dark-bg);
+    color: var(--text-primary);
+}
+
+.filter-control:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(79, 251, 223, 0.1);
+}
+
+.filter-control:hover {
+    border-color: var(--accent-color);
+}
+
+.filter-btn {
+    background: var(--accent-color);
+    color: var(--dark-bg);
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: all 0.3s;
+    align-self: flex-end;
+    margin-top: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-btn:hover {
+    background: #3de0c6;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 251, 223, 0.2);
+}
+
+.filter-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(79, 251, 223, 0.1);
+}
+
+.filter-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 251, 223, 0.2);
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+    padding: 1rem;
+    animation: fadeIn 0.8s ease-out 0.6s both;
+}
+
+.project-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    animation: fadeSlideUp 0.8s ease-out;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    border-color: var(--accent-color);
+}
+
+.project-header {
+    background: rgba(79, 251, 223, 0.1);
+    padding: 1.5rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.project-title {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-color);
+}
+
+.project-meta {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.project-body {
+    padding: 1.5rem;
+}
+
+.project-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.project-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.skill-tag {
+    background: rgba(79, 251, 223, 0.1);
+    color: var(--accent-color);
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.project-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.project-creator {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--text-primary);
+}
+
+.creator-avatar {
+    width: 35px;
+    height: 35px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dark-bg);
+    font-weight: bold;
+}
+
+.view-btn {
+    background: var(--accent-color);
+    color: var(--dark-bg);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.view-btn:hover {
+    background: #3de0c6;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 251, 223, 0.2);
+}
+
+@keyframes fadeSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 3rem;
+    justify-content: center;
+}
+
+.page-item {
+    list-style: none;
+}
+
+.page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.page-link:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    transform: translateY(-2px);
+}
+
+.page-item.active .page-link {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--dark-bg);
+}
+
+.page-item.disabled .page-link {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.no-projects {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-secondary);
+}
+
+.no-projects h3 {
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+}
+</style>
+
+<div class="projects-container">
+    <div class="projects-header">
+        <h1 class="projects-title">Explore Projects</h1>
+        <p class="projects-subtitle">Find exciting projects to contribute to and grow your skills</p>
+    </div>
+
+    <div class="container">
+        <div class="filter-bar">
+            <form class="filter-form" method="get">
+                <div class="filter-group">
+                    <label class="filter-label" for="search">Search</label>
+                    <input type="text" id="search" name="search" class="filter-control" placeholder="Search projects..." value="{{ request.GET.search }}">
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label" for="tech_stack">Tech Stack</label>
+                    <select id="tech_stack" name="tech_stack" class="filter-control">
+                        <option value="">All Technologies</option>
+                        {% for tech in tech_stack_choices %}
+                            <option value="{{ tech.0 }}" {% if tech.0 == request.GET.tech_stack %}selected{% endif %}>{{ tech.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label" for="sort">Sort By</label>
+                    <select id="sort" name="sort" class="filter-control">
+                        <option value="recent" {% if request.GET.sort == 'recent' %}selected{% endif %}>Most Recent</option>
+                        <option value="match" {% if request.GET.sort == 'match' %}selected{% endif %}>Best Match</option>
+                        <option value="popular" {% if request.GET.sort == 'popular' %}selected{% endif %}>Most Popular</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="filter-btn">Apply Filters</button>
+            </form>
+        </div>
+
+        <div class="projects-grid">
+            {% for project in projects %}
+            <div class="project-card">
+                <div class="project-header">
+                    <h2 class="project-title">{{ project.title }}</h2>
+                    <div class="project-meta">
+                        <span><i class="fas fa-calendar me-2"></i>{{ project.created_at|date:"M d, Y" }}</span>
+                        <span><i class="fas fa-users me-2"></i>{{ project.team_size }} Members</span>
+                    </div>
+                </div>
+                
+                <div class="project-body">
+                    <p class="project-description">{{ project.description|truncatechars:150 }}</p>
+                    
+                    <div class="project-skills">
+                        {% for tech in project.get_tech_stack_list %}
+                            <span class="skill-tag">{{ tech }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="project-footer">
+                        <div class="project-creator">
+                            {% if project.team_leader.profile_picture %}
+                                <img src="{{ project.team_leader.profile_picture.url }}" alt="{{ project.team_leader.username }}" class="creator-avatar">
+                            {% else %}
+                                <div class="creator-avatar">{{ project.team_leader.username|slice:":1"|upper }}</div>
+                            {% endif %}
+                            <span>{{ project.team_leader.username }}</span>
+                        </div>
+                        
+                        <a href="{% url 'projects:project_detail' project.id %}" class="view-btn">View Project</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <h3 class="text-secondary mb-3">No projects found</h3>
+                <p class="text-secondary">Try adjusting your search filters</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if is_paginated %}
+        <div class="pagination-wrapper">
+            <nav aria-label="Projects pagination">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.tech_stack %}&tech_stack={{ request.GET.tech_stack }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Previous">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.tech_stack %}&tech_stack={{ request.GET.tech_stack }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.tech_stack %}&tech_stack={{ request.GET.tech_stack }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Next">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        
+        {% if not projects %}
+        <div class="no-projects">
+            <h3>No projects found</h3>
+            <p>Try adjusting your search filters or check back later for new projects</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
