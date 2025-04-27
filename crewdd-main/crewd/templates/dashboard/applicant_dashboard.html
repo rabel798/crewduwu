@@ -1,0 +1,281 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Applicant Dashboard - Crewd{% endblock %}
+
+{% block sidebar_menu %}
+<li class="sidebar-menu-title">Navigation</li>
+<li>
+    <a href="{% url 'projects:dashboard_applicant' %}" class="active">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+    </a>
+</li>
+<li>
+    <a href="{% url 'projects:dashboard_switch_role' %}">
+        <i class="fas fa-exchange-alt"></i> Switch to Team Leader
+    </a>
+</li>
+
+<li class="sidebar-menu-title">Explore</li>
+<li>
+    <a href="{% url 'projects:contributors_list' %}">
+        <i class="fas fa-users"></i> Contributors
+    </a>
+</li>
+<li>
+    <a href="{% url 'projects:projects_list' %}">
+        <i class="fas fa-project-diagram"></i> Projects
+    </a>
+</li>
+
+<li class="sidebar-menu-title">My Activity</li>
+<li>
+    <a href="{% url 'projects:invitations_list' %}">
+        <i class="fas fa-envelope"></i> Project Invites
+        {% if pending_invitations_count > 0 %}
+        <span class="badge bg-danger ms-2">{{ pending_invitations_count }}</span>
+        {% endif %}
+    </a>
+</li>
+<li>
+    <a href="{% url 'projects:my_contributions' %}">
+        <i class="fas fa-code-branch"></i> My Contributions
+    </a>
+</li>
+<li>
+    <a href="{% url 'projects:groups_list' %}">
+        <i class="fas fa-layer-group"></i> Groups
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Applicant Dashboard</h1>
+        <a href="{% url 'projects:projects_list' %}" class="btn btn-primary">
+            <i class="fas fa-search me-2"></i>Find Projects
+        </a>
+    </div>
+    
+    <!-- Stats Overview -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-paper-plane"></i>
+                    </div>
+                    <h3 class="stat-count mb-2">{{ applications_count }}</h3>
+                    <div class="stat-label text-secondary">Active Applications</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3 class="stat-count mb-2">{{ pending_invitations_count }}</h3>
+                    <div class="stat-label text-secondary">Project Invites</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h3 class="stat-count mb-2">{{ active_projects_count }}</h3>
+                    <div class="stat-label text-secondary">Active Projects</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="stat-count mb-2">{{ teams_count }}</h3>
+                    <div class="stat-label text-secondary">Teams Joined</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Project Matches -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-star me-2 text-warning"></i>Recommended Projects</h5>
+                    <a href="{% url 'projects:projects_list' %}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if matching_projects %}
+                        <div class="list-group list-group-flush">
+                            {% for project in matching_projects %}
+                                <a href="{% url 'projects:project_detail' project.id %}" class="list-group-item list-group-item-action border-bottom border-secondary bg-transparent">
+                                    <div class="d-flex w-100 justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">{{ project.title }}</h6>
+                                            <p class="mb-1 text-secondary small">{{ project.description|truncatechars:100 }}</p>
+                                            <div class="mt-2">
+                                                {% for tech in project.get_tech_stack_list %}
+                                                    <span class="badge bg-primary me-1">{{ tech }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-success">{{ project.match_score }}% Match</span>
+                                            <div class="text-secondary small mt-1">{{ project.created_at|date:"M d, Y" }}</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <div class="text-secondary mb-3">No matching projects found</div>
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-primary">
+                                <i class="fas fa-user-edit me-2"></i>Update Your Skills
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Applications -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-paper-plane me-2 text-info"></i>Your Applications</h5>
+                    <a href="{% url 'projects:my_applications' %}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_applications %}
+                        <div class="list-group list-group-flush">
+                            {% for application in recent_applications %}
+                                <a href="{% url 'projects:application_detail' application.id %}" class="list-group-item list-group-item-action border-bottom border-secondary bg-transparent">
+                                    <div class="d-flex w-100 justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">{{ application.project.title }}</h6>
+                                            <p class="mb-1 text-secondary small">
+                                                <i class="fas fa-user me-1"></i>
+                                                Led by {{ application.project.team_leader.username }}
+                                            </p>
+                                            <div class="mt-2">
+                                                {% for tech in application.project.get_tech_stack_list %}
+                                                    <span class="badge bg-secondary me-1">{{ tech }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge {% if application.status == 'pending' %}bg-warning{% elif application.status == 'accepted' %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ application.get_status_display }}
+                                            </span>
+                                            <div class="text-secondary small mt-1">{{ application.created_at|date:"M d, Y" }}</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <div class="text-secondary">No applications yet</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2 text-warning"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <a href="{% url 'projects:projects_list' %}" class="card h-100 text-decoration-none">
+                                <div class="card-body text-center">
+                                    <div class="quick-action-icon mb-3">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                    <h5 class="text-white">Find Projects</h5>
+                                    <p class="text-secondary small mb-0">Browse and apply to exciting projects</p>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <a href="{% url 'projects:my_applications' %}" class="card h-100 text-decoration-none">
+                                <div class="card-body text-center">
+                                    <div class="quick-action-icon mb-3">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </div>
+                                    <h5 class="text-white">My Applications</h5>
+                                    <p class="text-secondary small mb-0">Track your project applications</p>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <a href="{% url 'projects:contributors_list' %}" class="card h-100 text-decoration-none">
+                                <div class="card-body text-center">
+                                    <div class="quick-action-icon mb-3">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <h5 class="text-white">Find Contributors</h5>
+                                    <p class="text-secondary small mb-0">Connect with other developers</p>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <a href="{% url 'projects:groups_list' %}" class="card h-100 text-decoration-none">
+                                <div class="card-body text-center">
+                                    <div class="quick-action-icon mb-3">
+                                        <i class="fas fa-layer-group"></i>
+                                    </div>
+                                    <h5 class="text-white">My Groups</h5>
+                                    <p class="text-secondary small mb-0">View your project teams and chats</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.quick-action-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin: 0 auto;
+}
+
+.list-group-item-action:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+</style>
+{% endblock %}
