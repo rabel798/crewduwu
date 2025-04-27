@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load hackathon_filters %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'projects:hackathon_list' %}">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Hackathons
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'projects:my_hackathons' %}">
+                            <i class="fas fa-user-friends me-2"></i>My Hackathons
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">{{ hackathon.title }}</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <span class="badge bg-{{ hackathon.status|status_color }} fs-6">{{ hackathon.status|title }}</span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Description Card -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">Description</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ hackathon.description|linebreaks }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Details Card -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">Event Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li class="mb-3">
+                                            <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                                            <strong>Start Date:</strong><br>
+                                            {{ hackathon.start_date|date:"F j, Y, g:i a" }}
+                                        </li>
+                                        <li class="mb-3">
+                                            <i class="fas fa-clock me-2 text-primary"></i>
+                                            <strong>End Date:</strong><br>
+                                            {{ hackathon.end_date|date:"F j, Y, g:i a" }}
+                                        </li>
+                                        <li class="mb-3">
+                                            <i class="fas fa-hourglass-end me-2 text-primary"></i>
+                                            <strong>Registration Deadline:</strong><br>
+                                            {{ hackathon.registration_deadline|date:"F j, Y, g:i a" }}
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li class="mb-3">
+                                            <i class="fas fa-users me-2 text-primary"></i>
+                                            <strong>Max Team Size:</strong><br>
+                                            {{ hackathon.max_team_size }} members
+                                        </li>
+                                        {% if hackathon.prize_pool %}
+                                        <li class="mb-3">
+                                            <i class="fas fa-trophy me-2 text-primary"></i>
+                                            <strong>Prize Pool:</strong><br>
+                                            ${{ hackathon.prize_pool }}
+                                        </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Technologies Card -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">Technologies</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for tag in hackathon.get_tags_list %}
+                                <span class="badge bg-secondary p-2">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- Registration Card -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">Team Registration</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if timezone.now > hackathon.registration_deadline %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                Registration deadline has passed.
+                            </div>
+                            {% elif is_registered %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Your team is already registered for this hackathon.
+                            </div>
+                            {% else %}
+                            <form method="post" action="{% url 'projects:register_for_hackathon' hackathon.id %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="team" class="form-label">Select Team</label>
+                                    <select class="form-select" id="team" name="team_id" required>
+                                        <option value="">Choose a team...</option>
+                                        {% for group in user_groups %}
+                                        <option value="{{ group.id }}">{{ group.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-user-plus me-2"></i>Register Team
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats Card -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">Quick Stats</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled">
+                                <li class="mb-3">
+                                    <i class="fas fa-users me-2 text-primary"></i>
+                                    <strong>Teams Registered:</strong> {{ hackathon.registrations.count }}
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fas fa-clock me-2 text-primary"></i>
+                                    <strong>Time Remaining:</strong>
+                                    {% if hackathon.status == 'upcoming' %}
+                                    {{ hackathon.start_date|timeuntil }} until start
+                                    {% elif hackathon.status == 'active' %}
+                                    {{ hackathon.end_date|timeuntil }} until end
+                                    {% else %}
+                                    Event completed
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %} 
