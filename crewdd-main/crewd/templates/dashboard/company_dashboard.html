@@ -1,0 +1,300 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Company Dashboard - Talent Pool{% endblock %}
+
+{% block dashboard_content %}
+<div class="talent-pool">
+    <!-- Search and Filter Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">Talent Pool</h4>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#filterModal">
+                        <i class="fas fa-filter"></i> Filters
+                    </button>
+                    <div class="input-group" style="width: 300px;">
+                        <span class="input-group-text bg-transparent">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search talents...">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Talent Grid -->
+    <div class="row g-4">
+        {% for profile in profiles %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card talent-card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if profile.profile_picture %}
+                            <img src="{{ profile.profile_picture.url }}" alt="{{ profile.username }}" class="talent-avatar me-3">
+                        {% else %}
+                            <div class="talent-avatar me-3">{{ profile.username|slice:":1"|upper }}</div>
+                        {% endif %}
+                        <div>
+                            <h5 class="card-title mb-1">{{ profile.get_full_name|default:profile.username }}</h5>
+                            <p class="text-accent mb-0">{{ profile.role|title }}</p>
+                        </div>
+                    </div>
+
+                    <div class="talent-info">
+                        {% if profile.bio %}
+                            <p class="card-text mb-3">{{ profile.bio|truncatechars:150 }}</p>
+                        {% endif %}
+
+                        {% if profile.tech_stack %}
+                            <div class="skills-container mb-3">
+                                {% with tech_stack=profile.get_tech_stack_list %}
+                                    {% for skill in tech_stack|slice:":5" %}
+                                        <span class="skill-tag">{{ skill }}</span>
+                                    {% endfor %}
+                                    {% if tech_stack|length > 5 %}
+                                        <span class="skill-tag more">+{{ tech_stack|length|add:"-5" }}</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        {% endif %}
+
+                        <div class="talent-stats">
+                            <div class="stat">
+                                <i class="fas fa-project-diagram"></i>
+                                <span>{{ profile.projectmembership_set.count }} Projects</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-star"></i>
+                                <span>{{ profile.rating|default:"N/A" }} Rating</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-code-branch"></i>
+                                <span>{{ profile.contributions_count|default:"0" }} Contributions</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-actions mt-3">
+                        <a href="{% url 'projects:view_profile' profile.id %}" class="btn btn-outline-primary w-100">
+                            View Full Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-users fa-3x mb-3 text-muted"></i>
+                    <h5>No profiles found</h5>
+                    <p class="text-muted">Try adjusting your search filters</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal fade" id="filterModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Filter Talents</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="filterForm">
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-select" name="role">
+                                <option value="">All Roles</option>
+                                <option value="developer">Developer</option>
+                                <option value="designer">Designer</option>
+                                <option value="project_manager">Project Manager</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Experience Level</label>
+                            <select class="form-select" name="experience">
+                                <option value="">All Levels</option>
+                                {% for value, label in experience_levels %}
+                                    <option value="{{ value }}" {% if experience_filter == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Skills</label>
+                            <select class="form-select" name="skills" multiple>
+                                {% for tech in tech_choices %}
+                                    <option value="{{ tech }}">{{ tech }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="applyFilters">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .talent-pool {
+        padding: 1rem;
+    }
+
+    .talent-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 12px;
+        background: var(--accent-color);
+        color: var(--dark-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 600;
+        object-fit: cover;
+    }
+
+    .text-accent {
+        color: var(--accent-color);
+    }
+
+    .talent-info {
+        border-top: 1px solid var(--border-color);
+        margin-top: 1rem;
+        padding-top: 1rem;
+    }
+
+    .skills-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .skill-tag {
+        background: rgba(79, 251, 223, 0.1);
+        color: var(--accent-color);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+    }
+
+    .skill-tag.more {
+        background: var(--border-color);
+        color: var(--text-secondary);
+    }
+
+    .talent-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .stat {
+        text-align: center;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .stat i {
+        display: block;
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+        color: var(--accent-color);
+    }
+
+    .talent-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+    }
+
+    .talent-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-content {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+    }
+
+    .modal-header {
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .modal-footer {
+        border-top: 1px solid var(--border-color);
+    }
+
+    .form-control, .form-select {
+        background: var(--dark-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .form-control:focus, .form-select:focus {
+        background: var(--dark-bg);
+        border-color: var(--accent-color);
+        color: var(--text-primary);
+    }
+
+    .input-group-text {
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const filterForm = document.getElementById('filterForm');
+    const applyFiltersBtn = document.getElementById('applyFilters');
+
+    // Handle search input
+    searchInput.addEventListener('input', debounce(function() {
+        applyFilters();
+    }, 300));
+
+    // Handle filter application
+    applyFiltersBtn.addEventListener('click', function() {
+        applyFilters();
+        $('#filterModal').modal('hide');
+    });
+
+    function applyFilters() {
+        const searchQuery = searchInput.value;
+        const formData = new FormData(filterForm);
+        const params = new URLSearchParams(formData);
+        
+        if (searchQuery) {
+            params.set('search', searchQuery);
+        }
+
+        window.location.href = `?${params.toString()}`;
+    }
+
+    function debounce(func, wait) {
+        let timeout;
+        return function() {
+            const context = this;
+            const args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                func.apply(context, args);
+            }, wait);
+        };
+    }
+});
+</script>
+{% endblock %} 
