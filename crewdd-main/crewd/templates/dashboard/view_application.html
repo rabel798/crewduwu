@@ -1,0 +1,178 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}View Application - Team Leader Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-0">Application Details</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'projects:applications_list' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Applications
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Application Details Card -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        {% if application.applicant.profile_picture %}
+                            <img src="{{ application.applicant.profile_picture.url }}" alt="{{ application.applicant.username }}" class="rounded-circle me-3" style="width: 64px; height: 64px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle me-3 d-flex align-items-center justify-content-center bg-primary text-white" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                                {{ application.applicant.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                        
+                        <div>
+                            <h4 class="mb-1">{{ application.applicant.username }}</h4>
+                            <div class="text-muted">
+                                Applied on {{ application.created_at|date:"M d, Y" }}
+                            </div>
+                        </div>
+                        
+                        <div class="ms-auto">
+                            <span class="badge {% if application.status == 'pending' %}bg-warning{% elif application.status == 'accepted' %}bg-success{% else %}bg-danger{% endif %} px-3 py-2">
+                                {{ application.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <h5 class="card-title mb-3">Application Message</h5>
+                    <div class="card bg-light p-3 mb-4" style="border-radius: 12px;">
+                        {{ application.message|linebreaks }}
+                    </div>
+
+                    {% if application.applicant.tech_stack %}
+                    <h5 class="card-title mb-3">Tech Stack</h5>
+                    <div class="mb-4">
+                        {% for tech in application.applicant.get_tech_stack_list %}
+                            <span class="badge bg-secondary me-2 mb-2">{{ tech }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if application.status == 'pending' %}
+                        <div class="d-flex gap-2 mt-4">
+                            <form action="{% url 'projects:update_application' application.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="accept">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check me-2"></i>Accept Application
+                                </button>
+                            </form>
+
+                            <form action="{% url 'projects:update_application' application.id %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-times me-2"></i>Reject Application
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Project Details Card -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Project Details</h5>
+                    <h4>{{ application.project.title }}</h4>
+                    <p class="text-muted mb-4">{{ application.project.description }}</p>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-users me-2 text-primary"></i>
+                                <div>
+                                    <div class="text-muted small">Team Size</div>
+                                    <div>{{ application.project.team_size }} members</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-clock me-2 text-primary"></i>
+                                <div>
+                                    <div class="text-muted small">Duration</div>
+                                    <div>{{ application.project.duration }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if application.project.required_skills %}
+                    <div class="mt-4">
+                        <h6 class="mb-2">Required Skills</h6>
+                        {% for skill in application.project.get_required_skills_list %}
+                            <span class="badge bg-primary me-2 mb-2">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Applicant Stats Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Applicant Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <i class="fas fa-project-diagram text-primary" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Active Projects</div>
+                            <div class="h5 mb-0">{{ application.applicant.projectmembership_set.count }}</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3">
+                            <i class="fas fa-paper-plane text-primary" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Total Applications</div>
+                            <div class="h5 mb-0">{{ application.applicant.application_set.count }}</div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-users text-primary" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Teams Joined</div>
+                            <div class="h5 mb-0">{{ application.applicant.groupmembership_set.count }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'projects:view_profile' application.applicant.id %}" class="btn btn-outline-primary w-100 mb-2">
+                        <i class="fas fa-user me-2"></i>View Full Profile
+                    </a>
+                    <a href="{% url 'projects:manage_project' application.project.id %}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-cog me-2"></i>Manage Project
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
