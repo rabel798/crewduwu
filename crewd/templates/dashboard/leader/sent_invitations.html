@@ -1,0 +1,184 @@
+{% extends 'dashboard/base.html' %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Sent Invitations</h1>
+    
+    <!-- Tabs for invitation status -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if invitation_status == 'pending' %}active{% endif %}" href="{% url 'projects:sent_invitations' %}?status=pending">
+                Pending
+                {% if pending_count > 0 %}
+                    <span class="badge bg-primary">{{ pending_count }}</span>
+                {% endif %}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if invitation_status == 'accepted' %}active{% endif %}" href="{% url 'projects:sent_invitations' %}?status=accepted">
+                Accepted
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if invitation_status == 'rejected' %}active{% endif %}" href="{% url 'projects:sent_invitations' %}?status=rejected">
+                Rejected
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if invitation_status == 'all' %}active{% endif %}" href="{% url 'projects:sent_invitations' %}?status=all">
+                All Invitations
+            </a>
+        </li>
+    </ul>
+    
+    <!-- Filter by project -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <label for="projectFilter" class="form-label">Filter by Project</label>
+                    <select class="form-select" id="projectFilter" name="project">
+                        <option value="">All Projects</option>
+                        {% for project in user_projects %}
+                            <option value="{{ project.id }}" {% if selected_project == project.id %}selected{% endif %}>{{ project.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="statusFilter" class="form-label">Status</label>
+                    <select class="form-select" id="statusFilter" name="status">
+                        <option value="all" {% if invitation_status == 'all' %}selected{% endif %}>All Statuses</option>
+                        <option value="pending" {% if invitation_status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="accepted" {% if invitation_status == 'accepted' %}selected{% endif %}>Accepted</option>
+                        <option value="rejected" {% if invitation_status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if invitations %}
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Recipient</th>
+                                <th>Project</th>
+                                <th>Tech Stack</th>
+                                <th>Sent On</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invitation in invitations %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if invitation.recipient.profile_picture %}
+                                                <img src="{{ invitation.recipient.profile_picture.url }}" alt="{{ invitation.recipient.username }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: #4B4ACF; color: white; font-size: 1rem;">
+                                                    {{ invitation.recipient.username|slice:":1"|upper }}
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <div>{{ invitation.recipient.username }}</div>
+                                                <small class="text-muted">{{ invitation.recipient.email }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ invitation.project.title }}</td>
+                                    <td>
+                                        <div class="project-skills">
+                                            {% for tech in invitation.recipient.get_tech_stack_list|slice:":3" %}
+                                                <span class="skill-tag">{{ tech }}</span>
+                                            {% endfor %}
+                                            {% if invitation.recipient.get_tech_stack_list|length > 3 %}
+                                                <span class="skill-tag">+{{ invitation.recipient.get_tech_stack_list|length|add:"-3" }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>{{ invitation.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if invitation.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif invitation.status == 'accepted' %}
+                                            <span class="badge bg-success">Accepted</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'projects:view_profile' invitation.recipient.id %}" class="btn btn-sm btn-outline-primary">View Profile</a>
+                                        
+                                        {% if invitation.status == 'pending' %}
+                                            <form method="post" action="{% url 'projects:cancel_invitation' invitation.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pagination -->
+        {% if invitations.paginator.num_pages > 1 %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if invitations.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&status={{ invitation_status }}{% if selected_project %}&project={{ selected_project }}{% endif %}">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ invitations.previous_page_number }}&status={{ invitation_status }}{% if selected_project %}&project={{ selected_project }}{% endif %}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Page {{ invitations.number }} of {{ invitations.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if invitations.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ invitations.next_page_number }}&status={{ invitation_status }}{% if selected_project %}&project={{ selected_project }}{% endif %}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ invitations.paginator.num_pages }}&status={{ invitation_status }}{% if selected_project %}&project={{ selected_project }}{% endif %}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            {% if invitation_status == 'pending' %}
+                You don't have any pending invitations.
+            {% elif invitation_status == 'accepted' %}
+                You don't have any accepted invitations.
+            {% elif invitation_status == 'rejected' %}
+                You don't have any rejected invitations.
+            {% else %}
+                You haven't sent any invitations yet.
+            {% endif %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{% url 'projects:my_projects' %}" class="btn btn-primary">Manage Projects</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
