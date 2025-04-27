@@ -1,0 +1,368 @@
+/* Dashboard styles with vertical navigation similar to Claude */
+
+:root {
+    --primary-color: #4B4ACF;
+    --secondary-color: #40E0D0;
+    --dark-color: #282a36;
+    --light-color: #f8f8f2;
+    --success-color: #50fa7b;
+    --error-color: #ff5555;
+    --sidebar-width: 280px;
+    --nav-item-height: 48px;
+    --header-height: 70px;
+}
+
+/* Dashboard Layout */
+.dashboard-container {
+    display: flex;
+    min-height: calc(100vh - var(--header-height) - 56px);
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: #f8f9fa;
+    border-right: 1px solid #e0e0e0;
+    padding: 0;
+    flex-shrink: 0;
+    height: calc(100vh - var(--header-height) - 56px);
+    position: sticky;
+    top: var(--header-height);
+    overflow-y: auto;
+}
+
+.main-content {
+    flex: 1;
+    padding: 2rem;
+    background-color: #ffffff;
+}
+
+/* Vertical Navigation */
+.vertical-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-item {
+    margin: 0;
+    padding: 0;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    height: var(--nav-item-height);
+    color: var(--dark-color);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.nav-link:hover {
+    background-color: rgba(75, 74, 207, 0.05);
+    color: var(--primary-color);
+}
+
+.nav-link.active {
+    background-color: rgba(75, 74, 207, 0.1);
+    color: var(--primary-color);
+    border-left: 3px solid var(--primary-color);
+    font-weight: 500;
+}
+
+.nav-icon {
+    margin-right: 12px;
+    font-size: 1.2rem;
+    color: inherit;
+}
+
+.nav-text {
+    font-size: 0.95rem;
+}
+
+.nav-divider {
+    height: 1px;
+    background-color: #e0e0e0;
+    margin: 0.5rem 0;
+}
+
+.nav-section {
+    padding: 0.75rem 1.5rem 0.5rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #767676;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Projects Cards */
+.project-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.project-status {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: rgba(80, 250, 123, 0.2);
+    color: #2ecc71;
+}
+
+.status-completed {
+    background-color: rgba(255, 85, 85, 0.2);
+    color: #e74c3c;
+}
+
+.project-title {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+.project-meta {
+    display: flex;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.project-meta > div {
+    margin-right: 20px;
+}
+
+.project-meta i {
+    margin-right: 5px;
+    color: var(--primary-color);
+}
+
+.project-skills {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 15px;
+    gap: 8px;
+}
+
+.skill-tag {
+    background: linear-gradient(to right, rgba(75, 74, 207, 0.1), rgba(64, 224, 208, 0.1));
+    color: var(--primary-color);
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
+/* User Profile Cards */
+.user-card {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+    transition: all 0.2s ease;
+}
+
+.user-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 15px;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 500;
+    margin-bottom: 3px;
+    color: var(--primary-color);
+}
+
+.user-role {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.user-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+/* Form styles */
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.form-section-title {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+/* Chat/Message styles */
+.chat-container {
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.chat-header {
+    padding: 15px;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+}
+
+.message {
+    margin-bottom: 15px;
+    max-width: 80%;
+}
+
+.message-incoming {
+    align-self: flex-start;
+}
+
+.message-outgoing {
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.message-bubble {
+    padding: 10px 15px;
+    border-radius: 18px;
+    position: relative;
+}
+
+.message-incoming .message-bubble {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-bottom-left-radius: 4px;
+}
+
+.message-outgoing .message-bubble {
+    background-color: var(--primary-color);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.message-info {
+    font-size: 0.7rem;
+    color: #999;
+    margin-top: 5px;
+}
+
+.message-outgoing .message-info {
+    text-align: right;
+}
+
+.chat-input {
+    display: flex;
+    padding: 10px;
+    background-color: white;
+    border-top: 1px solid #e0e0e0;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    margin-right: 10px;
+}
+
+.chat-input button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 0 20px;
+    cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        top: 0;
+        overflow-x: auto;
+    }
+    
+    .vertical-nav {
+        display: flex;
+        overflow-x: auto;
+    }
+    
+    .nav-item {
+        flex-shrink: 0;
+    }
+    
+    .nav-link {
+        height: auto;
+        padding: 15px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+    }
+    
+    .nav-link.active {
+        border-left: none;
+        border-bottom: 3px solid var(--primary-color);
+    }
+}
