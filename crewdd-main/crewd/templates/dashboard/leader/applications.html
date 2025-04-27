@@ -1,0 +1,82 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Applications - Team Leader Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Team Applications</h1>
+
+    <!-- Status filter -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if not status_filter %}active{% endif %}" href="{% url 'projects:applications_list' %}">
+                All Applications
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'pending' %}active{% endif %}" href="{% url 'projects:applications_list' %}?status=pending">
+                Pending
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'accepted' %}active{% endif %}" href="{% url 'projects:applications_list' %}?status=accepted">
+                Accepted
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if status_filter == 'rejected' %}active{% endif %}" href="{% url 'projects:applications_list' %}?status=rejected">
+                Rejected
+            </a>
+        </li>
+    </ul>
+
+    {% if applications %}
+        <div class="row">
+            {% for application in applications %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ application.applicant.username }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">Project: {{ application.project.title }}</h6>
+
+                            <p class="card-text">{{ application.message }}</p>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge {% if application.status == 'pending' %}bg-warning{% elif application.status == 'accepted' %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ application.get_status_display }}
+                                    </span>
+                                    <small class="text-muted ms-2">{{ application.created_at|date:"M d, Y" }}</small>
+                                </div>
+
+                                {% if application.status == 'pending' %}
+                                    <div>
+                                        <form action="{% url 'projects:update_application' application.id %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="accept">
+                                            <button type="submit" class="btn btn-success btn-sm">Accept</button>
+                                        </form>
+
+                                        <form action="{% url 'projects:update_application' application.id %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="reject">
+                                            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% include 'includes/pagination.html' %}
+    {% else %}
+        <div class="text-center my-5">
+            <h4>No applications found</h4>
+            <p class="text-muted">There are no applications matching your filter criteria.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
