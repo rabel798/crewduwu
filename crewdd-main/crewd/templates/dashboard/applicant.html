@@ -1,0 +1,132 @@
+{% extends 'dashboard/base.html' %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Welcome, {{ user.username }}</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-info-circle me-2 text-primary"></i>Profile Summary</h5>
+                    <div class="d-flex align-items-center mb-3">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background-color: #4B4ACF; color: white;">
+                                {{ user.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-0">{{ user.username }}</h6>
+                            <small class="text-muted">{{ user.email }}</small>
+                        </div>
+                    </div>
+                    
+                    <h6 class="mt-3">Tech Stack</h6>
+                    <div class="project-skills">
+                        {% for tech in user.get_tech_stack_list %}
+                            <span class="skill-tag">{{ tech }}</span>
+                        {% empty %}
+                            <p class="text-muted">No tech skills added yet. <a href="{% url 'accounts:profile' %}">Update your profile</a></p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-bell me-2 text-primary"></i>Notifications</h5>
+                    <ul class="list-group list-group-flush">
+                        {% if pending_invitations_count > 0 %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>You have pending project invitations</span>
+                                <a href="{% url 'invitations_list' %}" class="btn btn-sm btn-primary">View</a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>Complete your profile to get more project recommendations</span>
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-outline-primary">Edit Profile</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <h3 class="mb-3">Recommended Projects</h3>
+    <p class="text-muted mb-4">Based on your tech stack and preferences</p>
+    
+    <div class="row">
+        {% for project in recommended_projects %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="project-card">
+                    <span class="project-status status-{{ project.status }}">{{ project.get_status_display }}</span>
+                    <h5 class="project-title">{{ project.title }}</h5>
+                    <div class="project-meta">
+                        <div>
+                            <i class="fas fa-user"></i> {{ project.creator.username }}
+                        </div>
+                        <div>
+                            <i class="fas fa-users"></i> {{ project.team_size }}
+                        </div>
+                        <div>
+                            <i class="fas fa-clock"></i> {{ project.duration }}
+                        </div>
+                    </div>
+                    <p class="project-description">{{ project.description|truncatechars:120 }}</p>
+                    <div class="project-skills">
+                        {% for skill in project.get_required_skills_list %}
+                            <span class="skill-tag">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3">
+                        <a href="{% url 'view_project' project.id %}" class="btn btn-sm btn-primary">View Details</a>
+                        <a href="{% url 'apply_project' project.id %}" class="btn btn-sm btn-outline-primary">Apply</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No recommended projects found. Consider updating your tech stack to get more recommendations.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <h3 class="mb-3 mt-4">Active Contributions</h3>
+    <div class="row">
+        {% for membership in active_memberships %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="project-card">
+                    <span class="project-status status-{{ membership.project.status }}">{{ membership.project.get_status_display }}</span>
+                    <h5 class="project-title">{{ membership.project.title }}</h5>
+                    <div class="project-meta">
+                        <div>
+                            <i class="fas fa-user"></i> {{ membership.project.creator.username }}
+                        </div>
+                        <div>
+                            <i class="fas fa-calendar-alt"></i> Joined {{ membership.joined_at|date:"M d, Y" }}
+                        </div>
+                    </div>
+                    <p class="project-description">{{ membership.project.description|truncatechars:120 }}</p>
+                    <div class="mt-3">
+                        <a href="{% url 'view_project' membership.project.id %}" class="btn btn-sm btn-primary">View Project</a>
+                        <a href="{% url 'view_group' membership.project.group.id %}" class="btn btn-sm btn-outline-primary">Go to Group</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> You're not currently contributing to any active projects.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
