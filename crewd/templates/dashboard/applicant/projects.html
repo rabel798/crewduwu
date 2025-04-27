@@ -1,0 +1,161 @@
+{% extends 'dashboard/base.html' %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Contributors & Projects</h1>
+    
+    <!-- Search and Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="searchQuery" class="form-label">Search Projects</label>
+                    <input type="text" class="form-control" id="searchQuery" name="q" value="{{ request.GET.q }}" placeholder="Search by title or description">
+                </div>
+                <div class="col-md-3">
+                    <label for="techFilter" class="form-label">Tech Stack</label>
+                    <select class="form-select" id="techFilter" name="tech">
+                        <option value="">All Technologies</option>
+                        {% for tech in all_tech_options %}
+                            <option value="{{ tech }}" {% if request.GET.tech == tech %}selected{% endif %}>{{ tech }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="statusFilter" class="form-label">Status</label>
+                    <select class="form-select" id="statusFilter" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if active_subtab == 'contributors' %}active{% endif %}" href="{% url 'contributors_list' %}">Contributors</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_subtab == 'projects' %}active{% endif %}" href="{% url 'projects_list' %}">Projects</a>
+        </li>
+    </ul>
+    
+    {% if active_subtab == 'projects' %}
+        <!-- Recommended Projects First -->
+        {% if recommended_projects %}
+            <div class="mb-4">
+                <h3>Recommended for Your Skills</h3>
+                <div class="row">
+                    {% for project in recommended_projects %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="project-card">
+                                <span class="project-status status-{{ project.status }}">{{ project.get_status_display }}</span>
+                                <h5 class="project-title">{{ project.title }}</h5>
+                                <div class="project-meta">
+                                    <div>
+                                        <i class="fas fa-user"></i> {{ project.creator.username }}
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-users"></i> {{ project.members.count }}/{{ project.team_size }}
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-clock"></i> {{ project.duration }}
+                                    </div>
+                                </div>
+                                <p class="project-description">{{ project.description|truncatechars:120 }}</p>
+                                <div class="project-skills">
+                                    {% for skill in project.get_required_skills_list %}
+                                        <span class="skill-tag">{{ skill }}</span>
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-3">
+                                    <a href="{% url 'view_project' project.id %}" class="btn btn-sm btn-primary">View Details</a>
+                                    <a href="{% url 'apply_project' project.id %}" class="btn btn-sm btn-outline-primary">Apply</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    
+        <!-- All Projects -->
+        <h3 class="mb-3">All Projects</h3>
+        <div class="row">
+            {% for project in projects %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="project-card">
+                        <span class="project-status status-{{ project.status }}">{{ project.get_status_display }}</span>
+                        <h5 class="project-title">{{ project.title }}</h5>
+                        <div class="project-meta">
+                            <div>
+                                <i class="fas fa-user"></i> {{ project.creator.username }}
+                            </div>
+                            <div>
+                                <i class="fas fa-users"></i> {{ project.members.count }}/{{ project.team_size }}
+                            </div>
+                            <div>
+                                <i class="fas fa-clock"></i> {{ project.duration }}
+                            </div>
+                        </div>
+                        <p class="project-description">{{ project.description|truncatechars:120 }}</p>
+                        <div class="project-skills">
+                            {% for skill in project.get_required_skills_list %}
+                                <span class="skill-tag">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-3">
+                            <a href="{% url 'view_project' project.id %}" class="btn btn-sm btn-primary">View Details</a>
+                            <a href="{% url 'apply_project' project.id %}" class="btn btn-sm btn-outline-primary">Apply</a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> No projects found matching your filters.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if projects.paginator.num_pages > 1 %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if projects.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tech %}&tech={{ request.GET.tech }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ projects.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tech %}&tech={{ request.GET.tech }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Page {{ projects.number }} of {{ projects.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if projects.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ projects.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tech %}&tech={{ request.GET.tech }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ projects.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tech %}&tech={{ request.GET.tech }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
