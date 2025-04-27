@@ -1,0 +1,149 @@
+{% extends 'dashboard/base.html' %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <h1 class="mb-4">My Invitations</h1>
+    
+    <!-- Tabs for invitation status -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if invitation_status == 'pending' %}active{% endif %}" href="{% url 'invitations_list' %}?status=pending">
+                Pending
+                {% if pending_count > 0 %}
+                    <span class="badge bg-primary">{{ pending_count }}</span>
+                {% endif %}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if invitation_status == 'accepted' %}active{% endif %}" href="{% url 'invitations_list' %}?status=accepted">
+                Accepted
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if invitation_status == 'rejected' %}active{% endif %}" href="{% url 'invitations_list' %}?status=rejected">
+                Rejected
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if invitation_status == 'all' %}active{% endif %}" href="{% url 'invitations_list' %}?status=all">
+                All Invitations
+            </a>
+        </li>
+    </ul>
+    
+    {% if invitations %}
+        <div class="row">
+            {% for invitation in invitations %}
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Invitation to {{ invitation.project.title }}</h5>
+                            {% if invitation.status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% elif invitation.status == 'accepted' %}
+                                <span class="badge bg-success">Accepted</span>
+                            {% else %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <strong>From:</strong> {{ invitation.sender.username }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Project:</strong> {{ invitation.project.title }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Required Skills:</strong>
+                                <div class="project-skills mt-2">
+                                    {% for skill in invitation.project.get_required_skills_list %}
+                                        <span class="skill-tag">{{ skill }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Team Size:</strong> {{ invitation.project.team_size }}
+                                <br>
+                                <strong>Duration:</strong> {{ invitation.project.duration }}
+                            </div>
+                            
+                            {% if invitation.message %}
+                                <div class="mb-3">
+                                    <strong>Message:</strong>
+                                    <p class="card-text mt-1">{{ invitation.message }}</p>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <strong>Received:</strong> {{ invitation.created_at|date:"M d, Y" }}
+                            </div>
+                            
+                            <div class="d-flex">
+                                <a href="{% url 'view_project' invitation.project.id %}" class="btn btn-outline-primary me-2">View Project</a>
+                                
+                                {% if invitation.status == 'pending' %}
+                                    <form method="post" action="{% url 'update_invitation' invitation.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="accepted">
+                                        <button type="submit" class="btn btn-success me-2">Accept</button>
+                                    </form>
+                                    
+                                    <form method="post" action="{% url 'update_invitation' invitation.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="rejected">
+                                        <button type="submit" class="btn btn-danger">Reject</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if invitations.paginator.num_pages > 1 %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if invitations.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&status={{ invitation_status }}">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ invitations.previous_page_number }}&status={{ invitation_status }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Page {{ invitations.number }} of {{ invitations.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if invitations.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ invitations.next_page_number }}&status={{ invitation_status }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ invitations.paginator.num_pages }}&status={{ invitation_status }}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            {% if invitation_status == 'pending' %}
+                You don't have any pending invitations.
+            {% elif invitation_status == 'accepted' %}
+                You haven't accepted any invitations yet.
+            {% elif invitation_status == 'rejected' %}
+                You haven't rejected any invitations.
+            {% else %}
+                You haven't received any invitations yet.
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
