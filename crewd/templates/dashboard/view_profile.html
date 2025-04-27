@@ -1,0 +1,316 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ profile_user.get_full_name|default:profile_user.username }}'s Profile{% endblock %}
+
+{% block dashboard_content %}
+<div class="profile-view">
+    <!-- Profile Header -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center">
+                {% if profile_user.profile_picture %}
+                    <img src="{{ profile_user.profile_picture.url }}" alt="{{ profile_user.username }}" class="profile-avatar me-4">
+                {% else %}
+                    <div class="profile-avatar me-4">{{ profile_user.username|slice:":1"|upper }}</div>
+                {% endif %}
+                <div>
+                    <h2 class="mb-1">{{ profile_user.get_full_name|default:profile_user.username }}</h2>
+                    <p class="text-accent mb-2">{{ profile_user.role|title }}</p>
+                    {% if profile_user.bio %}
+                        <p class="mb-0">{{ profile_user.bio }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-md-4">
+            <!-- Tech Stack -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-code me-2"></i>Tech Stack</h5>
+                </div>
+                <div class="card-body">
+                    {% if profile_user.tech_stack %}
+                        <div class="skills-container">
+                            {% with tech_stack=profile_user.get_tech_stack_list %}
+                                {% for skill in tech_stack %}
+                                    <span class="skill-tag">{{ skill }}</span>
+                                {% endfor %}
+                            {% endwith %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">No tech stack specified</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-address-card me-2"></i>Contact Info</h5>
+                </div>
+                <div class="card-body">
+                    <div class="contact-info">
+                        {% if profile_user.email %}
+                            <div class="info-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ profile_user.email }}</span>
+                            </div>
+                        {% endif %}
+                        {% if profile_user.github_username %}
+                            <div class="info-item">
+                                <i class="fab fa-github"></i>
+                                <span>{{ profile_user.github_username }}</span>
+                            </div>
+                        {% endif %}
+                        {% if profile_user.linkedin_url %}
+                            <div class="info-item">
+                                <i class="fab fa-linkedin"></i>
+                                <span>{{ profile_user.linkedin_url }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-md-8">
+            <!-- Stats Overview -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-project-diagram"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3>{{ profile_user.projectmembership_set.count }}</h3>
+                                    <p>Projects</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3>{{ profile_user.rating|default:"N/A" }}</h3>
+                                    <p>Rating</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-code-branch"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3>{{ profile_user.contributions_count|default:"0" }}</h3>
+                                    <p>Contributions</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects -->
+            {% if projects %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-folder-open me-2"></i>Projects</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="project-list">
+                            {% for project in projects %}
+                                <div class="project-item">
+                                    <div class="project-info">
+                                        <h5>{{ project.title }}</h5>
+                                        <p class="mb-2">{{ project.description|truncatechars:150 }}</p>
+                                        <div class="tech-tags">
+                                            {% with tech_stack=project.get_tech_stack_list %}
+                                                {% for tech in tech_stack|slice:":5" %}
+                                                    <span class="skill-tag small">{{ tech }}</span>
+                                                {% endfor %}
+                                            {% endwith %}
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-outline-primary btn-sm">View Project</a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Active Memberships -->
+            {% if memberships %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Active Teams</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="membership-list">
+                            {% for membership in memberships %}
+                                <div class="membership-item">
+                                    <div class="membership-info">
+                                        <h5>{{ membership.project.title }}</h5>
+                                        <p class="mb-0">{{ membership.role|title }} since {{ membership.joined_at|date:"M d, Y" }}</p>
+                                    </div>
+                                    <a href="{% url 'projects:project_detail' membership.project.id %}" class="btn btn-outline-primary btn-sm">View Project</a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .profile-view {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 16px;
+        background: var(--accent-color);
+        color: var(--dark-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: 600;
+        object-fit: cover;
+    }
+
+    .skills-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .skill-tag {
+        background: rgba(79, 251, 223, 0.1);
+        color: var(--accent-color);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+    }
+
+    .skill-tag.small {
+        font-size: 0.75rem;
+        padding: 0.125rem 0.5rem;
+    }
+
+    .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--text-secondary);
+    }
+
+    .info-item i {
+        width: 24px;
+        color: var(--accent-color);
+    }
+
+    .stat-card {
+        background: rgba(79, 251, 223, 0.05);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(79, 251, 223, 0.1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--accent-color);
+    }
+
+    .stat-info h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .stat-info p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .project-list, .membership-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .project-item, .membership-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        background: rgba(79, 251, 223, 0.05);
+    }
+
+    .project-info, .membership-info {
+        flex: 1;
+        margin-right: 1rem;
+    }
+
+    .project-info h5, .membership-info h5 {
+        margin: 0;
+        color: var(--text-primary);
+    }
+
+    .tech-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        margin-top: 0.5rem;
+    }
+
+    .btn-outline-primary {
+        color: var(--accent-color);
+        border-color: var(--accent-color);
+    }
+
+    .btn-outline-primary:hover {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+        color: var(--dark-bg);
+    }
+</style>
+{% endblock %} 
