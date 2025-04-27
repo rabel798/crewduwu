@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} - Crewd</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Geist Mono Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;500;600;700&display=swap">
+    <style>
+        :root {
+            --dark-bg: #1a1b2e;
+            --card-bg: #242538;
+            --accent-color: #4ffbdf;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --border-color: #2d2e45;
+            --font-mono: 'Geist Mono', 'SF Mono', 'Consolas', monospace;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            height: 80px;
+            display: flex;
+            align-items: center;
+        }
+
+        .top-nav .logo-text {
+            font-weight: 600;
+            font-size: 1.75rem;
+            margin-bottom: 0;
+            background: linear-gradient(45deg, var(--accent-color), #3de0c6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: var(--font-mono);
+        }
+
+        .main-menu {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 1.5rem;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            right: 0;
+            z-index: 1020;
+        }
+
+        .content-wrapper {
+            margin-top: 140px;
+            padding: 1.5rem;
+        }
+
+        .nav-link {
+            color: var(--text-primary);
+            padding: 0.75rem 1.25rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-family: var(--font-mono);
+        }
+
+        .nav-link:hover {
+            color: var(--accent-color);
+            background: rgba(79, 251, 223, 0.1);
+        }
+
+        .nav-link.active {
+            color: var(--accent-color);
+            background: rgba(79, 251, 223, 0.15);
+            font-weight: 600;
+        }
+
+        .nav-link i {
+            margin-right: 0.75rem;
+            font-size: 1.1em;
+        }
+
+        .nav-divider {
+            border-right: 2px solid var(--border-color);
+            height: 24px;
+            margin: 0 1rem;
+        }
+
+        /* Quick Action Buttons */
+        .quick-action {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            display: inline-flex;
+            align-items: center;
+            color: var(--text-primary);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-right: 1rem;
+            text-decoration: none;
+            font-family: var(--font-mono);
+        }
+
+        .quick-action:hover {
+            border-color: var(--accent-color);
+            background: rgba(79, 251, 223, 0.1);
+            color: var(--accent-color);
+        }
+
+        .quick-action i {
+            width: 32px;
+            height: 32px;
+            background: rgba(79, 251, 223, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.1em;
+            transition: all 0.2s ease;
+        }
+
+        .quick-action:hover i {
+            background: rgba(79, 251, 223, 0.2);
+        }
+
+        .quick-action.primary {
+            background: var(--accent-color);
+            color: var(--dark-bg);
+            border-color: var(--accent-color);
+        }
+
+        .quick-action.primary i {
+            background: rgba(26, 27, 46, 0.2);
+        }
+
+        .quick-action.primary:hover {
+            background: #3de0c6;
+            border-color: #3de0c6;
+            color: var(--dark-bg);
+        }
+
+        /* Card Styling */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.25rem;
+        }
+
+        .card-body {
+            background-color: var(--card-bg);
+        }
+
+        /* Form Controls */
+        .form-control, .form-select {
+            background-color: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--dark-bg);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(79, 251, 223, 0.25);
+            color: var(--text-primary);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--accent-color);
+            border: none;
+            color: var(--dark-bg);
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background-color: #3de0c6;
+            color: var(--dark-bg);
+        }
+
+        /* Dropdown styling */
+        .dropdown-menu {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown-item {
+            color: var(--text-primary);
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(79, 251, 223, 0.1);
+            color: var(--accent-color);
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Avatar styling */
+        .avatar-sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: var(--dark-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Alert styling */
+        .alert {
+            display: none;
+        }
+
+        /* Badge styling */
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .badge.bg-danger {
+            background-color: #ff4757 !important;
+        }
+
+        .card-title, .card-text {
+            font-family: var(--font-mono);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-mono);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="d-flex align-items-center">
+            <img src="/static/img/logo.png" alt="Crewd Logo" height="48" class="me-3">
+            <h3 class="logo-text">Crewd</h3>
+        </div>
+        
+        <div class="ms-auto d-flex align-items-center">
+            {% if user.role == 'leader' %}
+            {% elif user.role == 'applicant' %}
+                <a href="{% url 'projects:projects_list' %}" class="quick-action primary me-4">
+                    <i class="fas fa-rocket"></i>
+                    Find Projects
+                </a>
+                <a href="{% url 'projects:invitations_list' %}" class="quick-action me-4">
+                    <i class="fas fa-envelope-open"></i>
+                    View Invites
+                    {% if pending_invitations_count > 0 %}
+                        <span class="badge bg-danger ms-2">{{ pending_invitations_count }}</span>
+                    {% endif %}
+                </a>
+            {% elif user.role == 'company' %}
+                <a href="{% url 'projects:dashboard' %}" class="quick-action primary me-4">
+                    <i class="fas fa-users"></i>
+                    Talent Pool
+                </a>
+                <a href="{% url 'accounts:profile' %}" class="quick-action me-4">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+            {% endif %}
+
+            <div class="dropdown">
+                <button class="btn btn-link dropdown-toggle" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-bell fa-lg text-white"></i>
+                    {% if notifications_count > 0 %}
+                        <span class="badge bg-danger">{{ notifications_count }}</span>
+                    {% endif %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown">
+                    {% if notifications %}
+                        {% for notification in notifications %}
+                            <li><a class="dropdown-item" href="{{ notification.url }}">{{ notification.message }}</a></li>
+                        {% endfor %}
+                    {% else %}
+                        <li><span class="dropdown-item text-muted">No new notifications</span></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <div class="dropdown ms-3">
+                <button class="btn btn-link dropdown-toggle d-flex align-items-center text-white" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="avatar-sm me-2">
+                    {% else %}
+                        <div class="avatar-sm me-2">{{ user.username|slice:":1"|upper }}</div>
+                    {% endif %}
+                    <span>{{ user.username }}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="fas fa-user me-2"></i> Profile</a></li>
+                    <li><a class="dropdown-item" href="{% url 'accounts:settings' %}"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Menu -->
+    <div class="main-menu">
+        <div class="container-fluid">
+            {% if user.role == 'applicant' %}
+                <nav class="nav">
+                    <a href="{% url 'projects:dashboard_applicant' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard_applicant' %}active{% endif %}">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                    <span class="nav-divider"></span>
+                    <a href="{% url 'projects:projects_list' %}" class="nav-link {% if request.resolver_match.url_name == 'projects_list' %}active{% endif %}">
+                        <i class="fas fa-project-diagram"></i> Projects
+                    </a>
+                    <a href="{% url 'projects:contributors_list' %}" class="nav-link {% if request.resolver_match.url_name == 'contributors_list' %}active{% endif %}">
+                        <i class="fas fa-users"></i> Contributors
+                    </a>
+                    <span class="nav-divider"></span>
+                    <a href="{% url 'projects:invitations_list' %}" class="nav-link {% if request.resolver_match.url_name == 'invitations_list' %}active{% endif %}">
+                        <i class="fas fa-envelope"></i> Invites
+                        {% if pending_invitations_count > 0 %}
+                            <span class="badge bg-danger ms-2">{{ pending_invitations_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'projects:my_contributions' %}" class="nav-link {% if request.resolver_match.url_name == 'my_contributions' %}active{% endif %}">
+                        <i class="fas fa-code-branch"></i> My Contributions
+                    </a>
+                    <a href="{% url 'projects:groups_list' %}" class="nav-link {% if request.resolver_match.url_name == 'groups_list' %}active{% endif %}">
+                        <i class="fas fa-layer-group"></i> Groups
+                    </a>
+                    <span class="nav-divider"></span>
+                    <a href="{% url 'projects:dashboard_switch_role' %}" class="nav-link">
+                        <i class="fas fa-exchange-alt"></i> Switch to Team Leader
+                    </a>
+                </nav>
+            {% elif user.role == 'leader' %}
+                <nav class="nav">
+                    <a href="{% url 'projects:dashboard_leader' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard_leader' %}active{% endif %}">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                    <span class="nav-divider"></span>
+                    <a href="{% url 'projects:my_projects' %}" class="nav-link {% if request.resolver_match.url_name == 'my_projects' %}active{% endif %}">
+                        <i class="fas fa-project-diagram"></i> My Projects
+                    </a>
+                    <a href="{% url 'projects:create_project' %}" class="nav-link {% if request.resolver_match.url_name == 'create_project' %}active{% endif %}">
+                        <i class="fas fa-plus-circle"></i> Add Project
+                    </a>
+                    <span class="nav-divider"></span>
+                    <a href="{% url 'projects:applications_list' %}" class="nav-link {% if request.resolver_match.url_name == 'applications_list' %}active{% endif %}">
+                        <i class="fas fa-user-plus"></i> Applications
+                        {% if pending_applications_count > 0 %}
+                            <span class="badge bg-danger ms-2">{{ pending_applications_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'projects:sent_invitations' %}" class="nav-link {% if request.resolver_match.url_name == 'sent_invitations' %}active{% endif %}">
+                        <i class="fas fa-paper-plane"></i> Sent Invites
+                    </a>
+                    <a href="{% url 'projects:groups_list' %}" class="nav-link {% if request.resolver_match.url_name == 'groups_list' %}active{% endif %}">
+                        <i class="fas fa-users"></i> Groups
+                    </a>
+                    <span class="nav-divider"></span>
+                    <a href="{% url 'projects:dashboard_switch_role' %}" class="nav-link">
+                        <i class="fas fa-exchange-alt"></i> Switch to Applicant
+                    </a>
+                </nav>
+            {% elif user.role == 'company' %}
+                <nav class="nav">
+                    <a href="{% url 'projects:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-users"></i> Talent Pool
+                    </a>
+                    <span class="nav-divider"></span>
+                    <a href="{% url 'accounts:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-wrapper">
+        <div class="container-fluid">
+            {% block dashboard_content %}{% endblock %}
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
