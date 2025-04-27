@@ -1,0 +1,387 @@
+{% extends 'dashboard/base.html' %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Create New Project</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="post" class="form-container" id="createProjectForm" action="{% url 'projects:create_project' %}">
+                {% csrf_token %}
+                
+                <div class="form-section">
+                    <h4 class="form-section-title">Project Details</h4>
+                    
+                    <div class="mb-3">
+                        <label for="id_title" class="form-label">Project Title</label>
+                        <input type="text" class="form-control" id="id_title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Project Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger mt-1">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="text-end mt-2">
+                            <button type="button" id="rewriteDescriptionBtn" class="btn btn-sm btn-outline-primary me-2">
+                                <i class="fas fa-magic me-1"></i> Rewrite with AI
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_team_size" class="form-label">Team Size</label>
+                            <input type="number" class="form-control" id="id_team_size" name="team_size" min="1" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_duration" class="form-label">Project Duration</label>
+                            <input type="text" class="form-control" id="id_duration" name="duration" placeholder="e.g., 3 months" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-magic me-2"></i>
+                                Auto-Generate Tech Stack
+                            </h5>
+                            <p class="card-text">Based on your project description, we can suggest the required tech stack for your project.</p>
+                            <button type="button" id="analyzeButton" class="btn btn-primary">
+                                <i class="fas fa-wand-magic-sparkles me-2"></i>
+                                Analyze Tech Stack
+                            </button>
+                            <div id="analyzeResult" class="mt-3" style="display: none;">
+                                <h6>Suggested Tech Stack:</h6>
+                                <div id="suggestedSkills" class="mb-4"></div>
+                                
+                                <h6 class="mt-4">Recommended Contributors</h6>
+                                <div id="recommendedContributors" class="mt-3">
+                                    <div class="list-group"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Custom Skills Section -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-plus-circle me-2"></i>
+                                Add Custom Skills
+                            </h6>
+                            <div class="input-group mb-3">
+                                <input type="text" id="customSkill" class="form-control" placeholder="Enter custom skill...">
+                                <button class="btn btn-primary" type="button" id="addCustomSkillBtn">
+                                    <i class="fas fa-plus me-1"></i> Add
+                                </button>
+                            </div>
+                            <div id="customSkillsList" class="d-flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+
+                    <h4 class="form-section-title">Tech Stack & Skills</h4>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Required Skills</label>
+                        <div class="form-text mb-2">Select all the skills required for this project</div>
+                        
+                        <div class="row" id="skillsContainer">
+                            {% for tech in tech_choices %}
+                                <div class="col-md-4 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="required_skills" value="{{ tech }}" id="skill_{{ forloop.counter }}">
+                                        <label class="form-check-label" for="skill_{{ forloop.counter }}">
+                                            {{ tech }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary">Create Project</button>
+                    <a href="{% url 'projects:my_projects' %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const analyzeButton = document.getElementById('analyzeButton');
+        const analyzeResult = document.getElementById('analyzeResult');
+        const suggestedSkills = document.getElementById('suggestedSkills');
+        const descriptionField = document.getElementById('{{ form.description.id_for_label }}');
+        const recommendedList = document.querySelector('#recommendedContributors .list-group');
+        const customSkillInput = document.getElementById('customSkill');
+        const addCustomSkillBtn = document.getElementById('addCustomSkillBtn');
+        const customSkillsList = document.getElementById('customSkillsList');
+        const rewriteDescriptionBtn = document.getElementById('rewriteDescriptionBtn');
+        
+        // Store all skills (suggested + custom)
+        let allSkills = new Set();
+        
+        // Function to add a skill badge
+        function addSkillBadge(skill, container, isCustom = false) {
+            const badge = document.createElement('div');
+            badge.className = 'badge bg-primary position-relative me-2 mb-2';
+            badge.style.paddingRight = '2rem';
+            
+            const skillText = document.createElement('span');
+            skillText.textContent = skill;
+            badge.appendChild(skillText);
+            
+            if (isCustom) {
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'btn btn-link text-white position-absolute end-0 top-50 translate-middle-y p-0 me-1';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.style.fontSize = '0.8rem';
+                removeBtn.onclick = (e) => {
+                    e.preventDefault();
+                    badge.remove();
+                    allSkills.delete(skill);
+                    updateProjectSkills();
+                };
+                badge.appendChild(removeBtn);
+            }
+            
+            container.appendChild(badge);
+            allSkills.add(skill);
+            updateProjectSkills();
+        }
+        
+        // Function to update project skills
+        function updateProjectSkills() {
+            // Update checkboxes based on suggested and custom skills
+            const checkboxes = document.querySelectorAll('input[name="required_skills"]');
+            checkboxes.forEach(checkbox => {
+                if (allSkills.has(checkbox.value)) {
+                    checkbox.checked = true;
+                }
+            });
+        }
+        
+        // Handle custom skill addition
+        addCustomSkillBtn.addEventListener('click', function() {
+            const skill = customSkillInput.value.trim();
+            if (skill) {
+                if (!allSkills.has(skill)) {
+                    addSkillBadge(skill, customSkillsList, true);
+                }
+                customSkillInput.value = '';
+            }
+        });
+        
+        // Allow Enter key to add custom skill
+        customSkillInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addCustomSkillBtn.click();
+            }
+        });
+        
+        // Handle rewrite description button click
+        rewriteDescriptionBtn.addEventListener('click', function() {
+            const description = descriptionField.value;
+            
+            if (!description.trim()) {
+                alert('Please enter a project description to rewrite.');
+                return;
+            }
+            
+            // Disable button and show loading state
+            rewriteDescriptionBtn.disabled = true;
+            rewriteDescriptionBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Rewriting...';
+            
+            // Send request to rewrite description
+            fetch('{% url "projects:rewrite_description" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: new URLSearchParams({
+                    'description': description
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button state
+                rewriteDescriptionBtn.disabled = false;
+                rewriteDescriptionBtn.innerHTML = '<i class="fas fa-magic me-1"></i> Rewrite with AI';
+                
+                if (data.error) {
+                    alert(data.message || 'Error rewriting description');
+                    return;
+                }
+                
+                // Update description field with rewritten text
+                descriptionField.value = data.rewritten_description;
+            })
+            .catch(error => {
+                // Reset button state
+                rewriteDescriptionBtn.disabled = false;
+                rewriteDescriptionBtn.innerHTML = '<i class="fas fa-magic me-1"></i> Rewrite with AI';
+                alert('Error rewriting description. Please try again.');
+            });
+        });
+        
+        // Existing analyze button click handler
+        analyzeButton.addEventListener('click', function() {
+            const description = descriptionField.value.trim();
+            
+            if (!description) {
+                alert('Please enter a project description first to analyze the tech stack.');
+                return;
+            }
+            
+            // Show loading state
+            analyzeButton.disabled = true;
+            analyzeButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Analyzing...';
+            analyzeResult.style.display = 'none';
+            
+            // Clear previous results
+            suggestedSkills.innerHTML = '';
+            recommendedList.innerHTML = '';
+            allSkills.clear();
+            
+            // Uncheck all checkboxes before analysis
+            document.querySelectorAll('input[name="required_skills"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            
+            // Call the tech stack analysis API
+            fetch('{% url "projects:analyze_tech_stack" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: new URLSearchParams({
+                    'description': description
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button state
+                analyzeButton.disabled = false;
+                analyzeButton.innerHTML = '<i class="fas fa-wand-magic-sparkles me-2"></i> Analyze Tech Stack';
+                
+                if (data.error) {
+                    alert(data.message || 'Error analyzing tech stack');
+                    return;
+                }
+                
+                // Display results
+                analyzeResult.style.display = 'block';
+                
+                // Display suggested skills and update checkboxes
+                if (data.tech_stack && data.tech_stack.length > 0) {
+                    data.tech_stack.forEach(skill => {
+                        addSkillBadge(skill, suggestedSkills);
+                        
+                        // Find and check the corresponding checkbox
+                        const checkbox = Array.from(document.querySelectorAll('input[name="required_skills"]'))
+                            .find(cb => cb.value.toLowerCase() === skill.toLowerCase());
+                        if (checkbox) {
+                            checkbox.checked = true;
+                        }
+                    });
+                    
+                    // Display recommended contributors
+                    if (data.recommendations && data.recommendations.length > 0) {
+                        recommendedList.innerHTML = '';
+                        data.recommendations.forEach(user => {
+                            const item = document.createElement('div');
+                            item.className = 'list-group-item d-flex justify-content-between align-items-center';
+                            item.innerHTML = `
+                                <div>
+                                    <h6 class="mb-0">${user.username}</h6>
+                                    <small class="text-muted">Match Score: ${user.match_score}%</small>
+                                    <div class="mt-1">
+                                        <small class="text-muted">Matching Skills:</small><br>
+                                        ${user.matching_skills.map(tech => 
+                                            `<span class="badge bg-success me-1">${tech}</span>`
+                                        ).join('')}
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary btn-sm invite-btn" data-user-id="${user.id}">
+                                    <i class="fas fa-user-plus me-1"></i> Invite
+                                </button>
+                            `;
+                            
+                            // Add invite button handler
+                            const inviteBtn = item.querySelector('.invite-btn');
+                            inviteBtn.addEventListener('click', function() {
+                                const userId = this.dataset.userId;
+                                
+                                // Disable button and show loading state
+                                this.disabled = true;
+                                this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Sending...';
+                                
+                                // Send invitation request
+                                fetch(`/projects/api/invite-contributor/${userId}/`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                                    },
+                                    body: JSON.stringify({
+                                        description: description,
+                                        required_skills: Array.from(allSkills).join(',')
+                                    })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.error) {
+                                        throw new Error(data.error);
+                                    }
+                                    // Update button to show success
+                                    this.className = 'btn btn-success btn-sm';
+                                    this.innerHTML = '<i class="fas fa-check me-1"></i> Invited';
+                                    this.disabled = true;
+                                })
+                                .catch(error => {
+                                    // Reset button state
+                                    this.disabled = false;
+                                    this.innerHTML = '<i class="fas fa-user-plus me-1"></i> Invite';
+                                    alert('Error sending invitation: ' + error.message);
+                                });
+                            });
+                            
+                            recommendedList.appendChild(item);
+                        });
+                    } else {
+                        recommendedList.innerHTML = `
+                            <div class="list-group-item text-center text-muted">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No matching contributors found for this tech stack.
+                            </div>
+                        `;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                analyzeButton.disabled = false;
+                analyzeButton.innerHTML = '<i class="fas fa-wand-magic-sparkles me-2"></i> Analyze Tech Stack';
+                alert('Error analyzing tech stack. Please try again.');
+            });
+        });
+    });
+</script>
+{% endblock %}
