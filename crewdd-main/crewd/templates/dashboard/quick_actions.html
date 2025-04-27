@@ -1,0 +1,25 @@
+{% if user.role == 'applicant' %}
+<div class="quick-action-item">
+    <a href="{% url 'projects:groups_list' %}" class="quick-action-link">
+        <i class="fas fa-comments"></i>
+        <span>My Group Chats</span>
+        {% if user.member_projects.count > 0 %}
+            <span class="badge bg-primary">{{ user.member_projects.count }}</span>
+        {% endif %}
+    </a>
+</div>
+{% endif %}
+
+{% if user.role == 'leader' %}
+<div class="quick-action-item">
+    <a href="{% url 'projects:groups_list' %}" class="quick-action-link">
+        <i class="fas fa-comments"></i>
+        <span>Project Group Chats</span>
+        {% if user.led_projects.count > 0 %}
+            <span class="badge bg-primary">{{ user.led_projects.count }}</span>
+        {% endif %}
+    </a>
+</div>
+{% endif %}
+
+<!-- ... existing quick actions ... --> 
