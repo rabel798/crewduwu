@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if form.instance.pk %}Edit Project{% else %}Create New Project{% endif %}</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label for="{{ form.title.id_for_label }}" class="form-label">Project Title</label>
+            {{ form.title }}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label">Project Description</label>
+            <div class="d-flex align-items-center mb-2">
+                <button type="button" class="btn btn-outline-primary me-2" id="rewrite-description">
+                    <i class="fas fa-magic"></i> AI Rewrite
+                </button>
+                <small class="text-muted">Let AI help improve your project description</small>
+            </div>
+            {{ form.description }}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.skills.id_for_label }}" class="form-label">Required Skills</label>
+            {{ form.skills }}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.budget.id_for_label }}" class="form-label">Budget</label>
+            {{ form.budget }}
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.timeline.id_for_label }}" class="form-label">Timeline</label>
+            {{ form.timeline }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">{% if form.instance.pk %}Update{% else %}Create{% endif %} Project</button>
+    </form>
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('rewrite-description').addEventListener('click', function() {
+    const description = document.getElementById('{{ form.description.id_for_label }}').value;
+    if (!description) {
+        alert('Please enter a description first');
+        return;
+    }
+
+    const button = this;
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rewriting...';
+
+    fetch('{% url "projects:rewrite_description" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ description: description })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else {
+            document.getElementById('{{ form.description.id_for_label }}').value = data.rewritten_description;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while rewriting the description');
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-magic"></i> AI Rewrite';
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 
