@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load hackathon_filters %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'projects:hackathon_list' %}">
+                            <i class="fas fa-trophy me-2"></i>All Hackathons
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'projects:my_hackathons' %}">
+                            <i class="fas fa-user-friends me-2"></i>My Hackathons
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Hackathons</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <a href="{% url 'projects:hackathon_list' %}?status=upcoming" class="btn btn-sm btn-outline-secondary">Upcoming</a>
+                        <a href="{% url 'projects:hackathon_list' %}?status=active" class="btn btn-sm btn-outline-secondary">Active</a>
+                        <a href="{% url 'projects:hackathon_list' %}?status=completed" class="btn btn-sm btn-outline-secondary">Completed</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for hackathon in hackathons %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">{{ hackathon.title }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{ hackathon.description|truncatewords:30 }}</p>
+                            <div class="mb-3">
+                                <span class="badge bg-{{ hackathon.status|status_color }}">{{ hackathon.status|title }}</span>
+                            </div>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-calendar-alt me-2"></i>Starts: {{ hackathon.start_date|date:"M d, Y" }}</li>
+                                <li><i class="fas fa-clock me-2"></i>Ends: {{ hackathon.end_date|date:"M d, Y" }}</li>
+                                {% if hackathon.prize_pool %}
+                                <li><i class="fas fa-trophy me-2"></i>Prize: ${{ hackathon.prize_pool }}</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{% url 'projects:hackathon_detail' hackathon.id %}" class="btn btn-primary w-100">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        No hackathons found. Check back later for new opportunities!
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %} 
