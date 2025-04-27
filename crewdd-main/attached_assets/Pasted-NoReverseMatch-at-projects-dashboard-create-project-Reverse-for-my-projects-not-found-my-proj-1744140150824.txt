@@ -1,0 +1,49 @@
+NoReverseMatch at /projects/dashboard/create-project/
+Reverse for 'my_projects' not found. 'my_projects' is not a valid view function or pattern name.
+Request Method:	GET
+Request URL:	http://475b258a-9aad-42e8-a387-18b9ff2fe7cb-00-1yg33yxlvc92g.sisko.replit.dev/projects/dashboard/create-project/
+Django Version:	5.2
+Exception Type:	NoReverseMatch
+Exception Value:	
+Reverse for 'my_projects' not found. 'my_projects' is not a valid view function or pattern name.
+Exception Location:	/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/django/urls/resolvers.py, line 831, in _reverse_with_prefix
+Raised during:	projects.dashboard_views.CreateProjectView
+Python Executable:	/home/runner/workspace/.pythonlibs/bin/python
+Python Version:	3.11.10
+Python Path:	
+['/home/runner/workspace/crewd',
+ '/home/runner/workspace/crewd',
+ '/nix/store/lc7qv2ldzrs1aq3hbyzmbgvn0h2w26pl-sitecustomize/lib/python/site-packages',
+ '/nix/store/dfg63lldbvcj207iyr9z0xw21d8ax02n-python3.11-pip-24.0/lib/python3.11/site-packages',
+ '/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python311.zip',
+ '/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python3.11',
+ '/nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python3.11/lib-dynload',
+ '/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages',
+ '/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages',
+ '/nix/store/wblvmd5y7izx0z10d1w7ga7zc4apjxmb-python3.11-setuptools-75.1.1/lib/python3.11/site-packages']
+Server time:	Tue, 08 Apr 2025 19:21:42 +0000
+Error during template rendering
+In template /home/runner/workspace/crewd/templates/dashboard/leader/create_project.html, error at line 80
+
+Reverse for 'my_projects' not found. 'my_projects' is not a valid view function or pattern name.
+70	                            <div id="analyzeResult" class="mt-3" style="display: none;">
+71	                                <h6>Suggested Tech Stack:</h6>
+72	                                <div id="suggestedSkills" class="project-skills mt-2"></div>
+73	                            </div>
+74	                        </div>
+75	                    </div>
+76	                </div>
+77	                
+78	                <div class="text-center mt-4">
+79	                    <button type="submit" class="btn btn-primary">Create Project</button>
+80	                    <a href="{% url 'my_projects' %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+81	                </div>
+82	            </form>
+83	        </div>
+84	    </div>
+85	</div>
+86	{% endblock %}
+87	
+88	{% block scripts %}
+89	<script>
+90	    document.addEventListener('DOMContentLoaded', function() {
