@@ -1,0 +1,183 @@
+{% extends 'dashboard/base.html' %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="mb-0">Your Profile</h1>
+                <div class="text-muted">{{ user.get_role_display }}</div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" class="profile-form">
+                        {% csrf_token %}
+                        
+                        <div class="row g-4">
+                            <!-- Profile Picture Section -->
+                            <div class="col-12 text-center mb-4">
+                                <div class="profile-picture-container">
+                                    {% if user.profile_picture %}
+                                        <img src="{{ user.profile_picture.url }}" alt="Current profile picture" class="profile-picture">
+                                    {% else %}
+                                        <div class="profile-picture-placeholder">
+                                            {{ user.username|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <label for="{{ form.profile_picture.id_for_label }}" class="profile-picture-upload">
+                                        <i class="fas fa-camera"></i>
+                                    </label>
+                                    {{ form.profile_picture }}
+                                </div>
+                                {% if form.profile_picture.errors %}
+                                    <div class="alert alert-danger mt-2">{{ form.profile_picture.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Basic Info Section -->
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Username</label>
+                                    {{ form.username }}
+                                    {% if form.username.errors %}
+                                        <div class="alert alert-danger mt-2">{{ form.username.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Email</label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="alert alert-danger mt-2">{{ form.email.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Tech Stack Section -->
+                            <div class="col-12">
+                                <label class="form-label mb-3">Tech Stack</label>
+                                <div class="tech-stack-grid">
+                                    {% for tech in tech_choices %}
+                                        <div class="tech-item">
+                                            <input type="checkbox" class="btn-check" name="tech_stack" 
+                                                   id="tech_{{ forloop.counter }}" value="{{ tech }}"
+                                                   {% if tech in user.get_tech_stack_list %}checked{% endif %}>
+                                            <label class="btn btn-outline-primary" for="tech_{{ forloop.counter }}">
+                                                {{ tech }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="col-12 text-center mt-4">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-save me-2"></i>Update Profile
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-form .form-control {
+    background: var(--dark-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.profile-form .form-control:focus {
+    background: var(--dark-bg);
+    border-color: var(--accent-color);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 0.2rem rgba(79, 251, 223, 0.25);
+}
+
+.profile-picture-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+}
+
+.profile-picture,
+.profile-picture-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-picture-placeholder {
+    background: var(--accent-color);
+    color: var(--dark-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: 600;
+}
+
+.profile-picture-upload {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--dark-bg);
+    transition: transform 0.2s;
+}
+
+.profile-picture-upload:hover {
+    transform: scale(1.1);
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.tech-stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.tech-item .btn-outline-primary {
+    width: 100%;
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.tech-item .btn-check:checked + .btn-outline-primary {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--dark-bg);
+}
+
+.tech-item .btn-outline-primary:hover {
+    background-color: rgba(79, 251, 223, 0.1);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+</style>
+{% endblock %}
