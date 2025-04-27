@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Applicant Dashboard - Crewd{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 2rem;">Applicant Dashboard</h1>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 2rem;">
+    <div class="glass-card" style="flex: 1; min-width: 300px;">
+        <h3 style="margin-bottom: 1rem; color: #4B4ACF;">Your Applications</h3>
+        {% if user.applications.all %}
+            <div style="display: grid; gap: 15px;">
+                {% for app in user.applications.all %}
+                <div class="card">
+                    <h4>{{ app.project.title }}</h4>
+                    <p><strong>Status:</strong> 
+                        {% if app.status == 'pending' %}
+                            <span style="color: orange;">Pending</span>
+                        {% elif app.status == 'accepted' %}
+                            <span style="color: green;">Accepted</span>
+                        {% elif app.status == 'rejected' %}
+                            <span style="color: red;">Rejected</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Applied:</strong> {{ app.created_at|date:"M d, Y" }}</p>
+                    <a href="{% url 'projects:project_detail' app.project.id %}" class="btn btn-outline">View Project</a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>You haven't applied to any projects yet.</p>
+            <a href="{% url 'projects:project_list' %}" class="btn">Browse Projects</a>
+        {% endif %}
+    </div>
+    
+    <div class="glass-card" style="flex: 1; min-width: 300px;">
+        <h3 style="margin-bottom: 1rem; color: #4B4ACF;">Recommended Projects</h3>
+        {% if available_projects %}
+            <div style="display: grid; gap: 15px;">
+                {% for project in available_projects|slice:":3" %}
+                <div class="card">
+                    <h4>{{ project.title }}</h4>
+                    <p>{{ project.description|truncatechars:100 }}</p>
+                    <p><strong>Team Size:</strong> {{ project.team_size }}</p>
+                    <p><strong>Duration:</strong> {{ project.duration }}</p>
+                    <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-outline">View Details</a>
+                </div>
+                {% endfor %}
+            </div>
+            <a href="{% url 'projects:project_list' %}" style="display: block; margin-top: 15px; text-align: center;">View All Projects</a>
+        {% else %}
+            <p>No active projects available at the moment.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="glass-card">
+    <h3 style="margin-bottom: 1rem; color: #4B4ACF;">Your Profile</h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+        <div style="flex: 1; min-width: 200px;">
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Profile Picture" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; display: block; margin-bottom: 15px;">
+            {% else %}
+                <div style="width: 150px; height: 150px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <span style="font-size: 2rem; color: #999;">{{ user.username.0|upper }}</span>
+                </div>
+            {% endif %}
+            <h4>{{ user.username }}</h4>
+            <p>{{ user.email }}</p>
+        </div>
+        
+        <div style="flex: 2; min-width: 300px;">
+            <h4 style="margin-bottom: 10px;">Your Tech Stack</h4>
+            {% if user.tech_stack %}
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    {% for tech in user.get_tech_stack_list %}
+                        <span style="background: rgba(75, 74, 207, 0.1); color: #4B4ACF; padding: 5px 10px; border-radius: 20px; font-size: 0.9rem;">{{ tech }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>You haven't added any skills to your profile yet.</p>
+            {% endif %}
+            
+            <div style="margin-top: 20px;">
+                <a href="{% url 'accounts:profile' %}" class="btn btn-outline">Edit Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
