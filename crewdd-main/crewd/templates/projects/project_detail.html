@@ -1,0 +1,276 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{{ project.title }} - Crewd{% endblock %}
+
+{% block dashboard_content %}
+<style>
+.project-detail {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.8s ease-out;
+}
+
+.project-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.project-header h2 {
+    font-size: 2.5rem;
+    margin: 0;
+    background: linear-gradient(to right, var(--accent-color), #3de0c6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.status-badge {
+    padding: 0.5rem 1.2rem;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.status-open {
+    background: rgba(79, 251, 223, 0.1);
+    color: var(--accent-color);
+}
+
+.status-in_progress {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.status-completed {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.meta-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.meta-info div {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.meta-info i {
+    color: var(--accent-color);
+    font-size: 1.2rem;
+}
+
+.description {
+    margin-bottom: 2.5rem;
+}
+
+.description h4, .skills h4, .team-members h4 {
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.description p {
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 2.5rem;
+}
+
+.skill-tag {
+    background: rgba(79, 251, 223, 0.1);
+    color: var(--accent-color);
+    padding: 0.5rem 1.2rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.member-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.member {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--dark-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.member:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-color);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.member-avatar {
+    width: 40px;
+    height: 40px;
+    background: var(--accent-color);
+    color: var(--dark-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.member-name {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn {
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--accent-color);
+    color: var(--dark-bg);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: #3de0c6;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 251, 223, 0.2);
+}
+
+.btn-outline-primary {
+    background: transparent;
+    border: 2px solid var(--accent-color);
+    color: var(--accent-color);
+}
+
+.btn-outline-primary:hover {
+    background: var(--accent-color);
+    color: var(--dark-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 251, 223, 0.2);
+}
+
+.btn-outline-secondary {
+    background: transparent;
+    border: 2px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--border-color);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<div class="container">
+    <div class="project-detail">
+        <div class="project-header">
+            <h2>{{ project.title }}</h2>
+            <span class="status-badge status-{{ project.status }}">{{ project.get_status_display }}</span>
+        </div>
+
+        <div class="project-info">
+            <div class="meta-info">
+                <div><i class="fas fa-user"></i> Created by: {{ project.team_leader.username }}</div>
+                <div><i class="fas fa-users"></i> Team Size: {{ project.members.count }}/{{ project.team_size }}</div>
+                <div><i class="fas fa-clock"></i> Duration: {{ project.duration }}</div>
+                <div><i class="fas fa-calendar"></i> Created: {{ project.created_at|date:"M d, Y" }}</div>
+            </div>
+
+            <div class="description">
+                <h4>Project Description</h4>
+                <p>{{ project.description }}</p>
+            </div>
+
+            <div class="skills">
+                <h4>Required Skills</h4>
+                <div class="skill-tags">
+                    {% for tech in project.get_tech_stack_list %}
+                        <span class="skill-tag">{{ tech }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="team-members">
+                <h4>Team Members</h4>
+                <div class="member-list">
+                    <div class="member">
+                        {% if project.team_leader.profile_picture %}
+                            <img src="{{ project.team_leader.profile_picture.url }}" alt="{{ project.team_leader.username }}" class="member-avatar">
+                        {% else %}
+                            <div class="member-avatar">{{ project.team_leader.username|slice:":1"|upper }}</div>
+                        {% endif %}
+                        <span class="member-name">{{ project.team_leader.username }} (Leader)</span>
+                    </div>
+                    {% for member in team_members %}
+                        <div class="member">
+                            {% if member.profile_picture %}
+                                <img src="{{ member.profile_picture.url }}" alt="{{ member.username }}" class="member-avatar">
+                            {% else %}
+                                <div class="member-avatar">{{ member.username|slice:":1"|upper }}</div>
+                            {% endif %}
+                            <span class="member-name">{{ member.username }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="actions">
+                {% if not is_team_leader and not is_member and not has_applied %}
+                    <a href="{% url 'projects:apply_project' project.id %}" class="btn btn-primary">Apply to Join</a>
+                {% endif %}
+                {% if is_team_leader %}
+                    <a href="{% url 'projects:manage_project' project.id %}" class="btn btn-outline-primary">Manage Project</a>
+                {% endif %}
+                <a href="{% url 'projects:project_list' %}" class="btn btn-outline-secondary">Back to Projects</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
