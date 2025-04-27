@@ -1,0 +1,182 @@
+{% extends 'dashboard/base.html' %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Find Contributors for {{ project.title }}</h1>
+    
+    <div class="alert alert-info mb-4">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-info-circle me-3" style="font-size: 1.5rem;"></i>
+            <div>
+                <h5 class="mb-1">Project Requirements</h5>
+                <p class="mb-1">Looking for contributors with the following skills:</p>
+                <div class="project-skills mt-2">
+                    {% for skill in project.get_required_skills_list %}
+                        <span class="skill-tag">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search and Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="searchQuery" class="form-label">Search Contributors</label>
+                    <input type="text" class="form-control" id="searchQuery" name="q" value="{{ request.GET.q }}" placeholder="Search by name or skills">
+                </div>
+                <div class="col-md-3">
+                    <label for="techFilter" class="form-label">Tech Stack</label>
+                    <select class="form-select" id="techFilter" name="tech">
+                        <option value="">All Technologies</option>
+                        {% for tech in all_tech_options %}
+                            <option value="{{ tech }}" {% if request.GET.tech == tech %}selected{% endif %}>{{ tech }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="matchFilter" class="form-label">Show</label>
+                    <select class="form-select" id="matchFilter" name="match">
+                        <option value="all" {% if match_filter == 'all' %}selected{% endif %}>All Contributors</option>
+                        <option value="recommended" {% if match_filter == 'recommended' %}selected{% endif %}>Recommended Only</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Recommended Contributors Section -->
+    {% if recommended_users %}
+        <h3 class="mb-3">Recommended Contributors</h3>
+        <div class="row">
+            {% for user in recommended_users %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="user-card">
+                        <div class="user-avatar">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                            {% else %}
+                                <div class="d-flex align-items-center justify-content-center h-100" style="background-color: #4B4ACF; color: white; font-size: 1.5rem;">
+                                    {{ user.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="user-info">
+                            <h5 class="user-name">{{ user.username }}</h5>
+                            <div class="user-role">{{ user.get_role_display }}</div>
+                            <div class="user-skills">
+                                {% for tech in user.get_tech_stack_list %}
+                                    <span class="skill-tag {% if tech in project.get_required_skills_list %}status-active{% endif %}">{{ tech }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="ms-auto d-flex flex-column align-items-end">
+                            <a href="{% url 'view_profile' user.id %}" class="btn btn-sm btn-outline-primary mb-2">View Profile</a>
+                            
+                            {% if user in already_invited %}
+                                <span class="badge bg-secondary">Already Invited</span>
+                            {% elif user in already_applied %}
+                                <span class="badge bg-info">Applied</span>
+                            {% elif user in project_members %}
+                                <span class="badge bg-success">Team Member</span>
+                            {% else %}
+                                <a href="{% url 'invite_contributor' project.id user.id %}" class="btn btn-sm btn-primary">Invite</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <!-- All Contributors Section -->
+    {% if match_filter == 'all' %}
+        <h3 class="mb-3 mt-4">All Contributors</h3>
+        <div class="row">
+            {% for user in contributors %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="user-card">
+                        <div class="user-avatar">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                            {% else %}
+                                <div class="d-flex align-items-center justify-content-center h-100" style="background-color: #4B4ACF; color: white; font-size: 1.5rem;">
+                                    {{ user.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="user-info">
+                            <h5 class="user-name">{{ user.username }}</h5>
+                            <div class="user-role">{{ user.get_role_display }}</div>
+                            <div class="user-skills">
+                                {% for tech in user.get_tech_stack_list %}
+                                    <span class="skill-tag {% if tech in project.get_required_skills_list %}status-active{% endif %}">{{ tech }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="ms-auto d-flex flex-column align-items-end">
+                            <a href="{% url 'view_profile' user.id %}" class="btn btn-sm btn-outline-primary mb-2">View Profile</a>
+                            
+                            {% if user in already_invited %}
+                                <span class="badge bg-secondary">Already Invited</span>
+                            {% elif user in already_applied %}
+                                <span class="badge bg-info">Applied</span>
+                            {% elif user in project_members %}
+                                <span class="badge bg-success">Team Member</span>
+                            {% else %}
+                                <a href="{% url 'invite_contributor' project.id user.id %}" class="btn btn-sm btn-primary">Invite</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> No contributors found matching your filters.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if contributors.paginator.num_pages > 1 %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if contributors.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tech %}&tech={{ request.GET.tech }}{% endif %}&match={{ match_filter }}">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ contributors.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tech %}&tech={{ request.GET.tech }}{% endif %}&match={{ match_filter }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            Page {{ contributors.number }} of {{ contributors.paginator.num_pages }}
+                        </span>
+                    </li>
+                    
+                    {% if contributors.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ contributors.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tech %}&tech={{ request.GET.tech }}{% endif %}&match={{ match_filter }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ contributors.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tech %}&tech={{ request.GET.tech }}{% endif %}&match={{ match_filter }}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% endif %}
+    
+    <div class="mt-4 text-center">
+        <a href="{% url 'manage_project' project.id %}" class="btn btn-outline-primary">Back to Project</a>
+    </div>
+</div>
+{% endblock %}
